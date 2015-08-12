@@ -1,0 +1,53 @@
+- name: Ensure Kube Servers are up. 
+  connection: local
+  hosts: local
+  vars_files:
+   - vars/metacloud_vars.yml
+
+  tasks: 
+  - name: Deploy Kubernetes Master to Kube01
+    nova_compute:
+      state: present
+      auth_url: "{{ lookup('env', 'OS_AUTH_URL') }}"
+      login_username: "{{ lookup('env', 'OS_USERNAME') }}"
+      login_password: "{{ lookup('env', 'OS_PASSWORD') }}"
+      login_tenant_name: "{{ project_name }}"
+      name: "{{ item }}"
+      image_name: "{{ coreos_image_name }}"
+      key_name: "{{ keypair }}"
+      # 3 is m1.large
+      flavor_id: 3
+      meta: 
+        group: Kube-Servers
+      security_groups: "{{ security_group }}"
+      user_data:  "{{ lookup('file', 'files/master.yaml') }}"
+      floating_ip_pools:
+        - "nova"
+    with_items:
+      - kube01
+    register: nova
+
+  - debug: var=nova.results[0].private_ip
+
+  - name: Deploy Kubernetes Minions
+    nova_compute:
+      state: present
+      auth_url: "{{ lookup('env', 'OS_AUTH_URL') }}"
+      login_username: "{{ lookup('env', 'OS_USERNAME') }}"
+      login_password: "{{ lookup('env', 'OS_PASSWORD') }}"
+      login_tenant_name: "{{ project_name }}"
+      name: "{{ item }}"
+      image_name: "{{ coreos_image_name }}"
+      key_name: "{{ keypair }}"
+      # 3 is m1.large
+      flavor_id: 3
+      meta: 
+        group: Kube-Servers
+      security_groups: "{{ security_group }}"
+      user_data:  "{{ lookup('file', 'files/node.yaml') }}"
+      floating_ip_pools:
+        - "nova"
+    with_items:
+      - kube02
+
+

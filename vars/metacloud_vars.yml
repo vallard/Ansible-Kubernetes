@@ -1,0 +1,13 @@
+---
+keypair: tco-gold
+# added port 22 to the security group
+security_group: default
+
+#coreos_image_name: "CoreOS 633.1.0"
+coreos_image_name: "CoreOS723"
+
+project_name: "Cisco Flood"
+#image
+m1large: 3
+
+
